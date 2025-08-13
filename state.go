@@ -55,7 +55,7 @@ func (s *state) AddConstraint(command string, args ...string) error {
 	}
 
 	s.Players.AddEdge(player1, player2)
-	fmt.Printf("Added exclusion constraint, '%s' - '%s'.\n", player1, player2)
+	fmt.Printf("Added exclusion constraint, '%s' X '%s'.\n", player1, player2)
 	return nil
 }
 
@@ -71,7 +71,7 @@ func (s *state) RemoveConstraint(command string, args ...string) error {
 	}
 
 	s.Players.RemoveEdge(player1, player2)
-	fmt.Printf("Removed exclusion constraint, '%s' - '%s'.\n", player1, player2)
+	fmt.Printf("Removed exclusion constraint, '%s' X '%s'.\n", player1, player2)
 	return nil
 }
 
@@ -86,7 +86,6 @@ func (s *state) ListPlayers(_ string, _ ...string) error {
 	for player := range s.Players.AllNodes().All() {
 		fmt.Printf("\t- '%s'\n", player)
 	}
-	fmt.Println()
 	return nil
 }
 
@@ -110,7 +109,6 @@ func (s *state) ListConstraints(_ string, _ ...string) error {
 
 		donePlayers.Add(player)
 	}
-	fmt.Println()
 	return nil
 }
 
@@ -132,14 +130,13 @@ func (s *state) GenerateTeams(command string, args ...string) error {
 	}
 
 	printTeams(teams)
-	fmt.Println()
 	return nil
 }
 
 func printTeams(teams []datastructures.Set[string]) {
 	numberOfTeams := len(teams)
 	for index, team := range teams {
-		fmt.Printf("Team %d of %d:\n", index, numberOfTeams)
+		fmt.Printf("Team %d of %d:\n", index + 1, numberOfTeams)
 		for member := range team.All() {
 			fmt.Printf("\t- '%s'\n", member)
 		}

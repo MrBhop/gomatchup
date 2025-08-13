@@ -75,6 +75,7 @@ func (r *replCommandList) Start() error {
 	r.printReplHint()
 
 	for {
+		fmt.Println()
 		fmt.Printf("%s ", r.config.Prompt)
 
 		if !reader.Scan() {

@@ -12,7 +12,6 @@ func getHelpHandler(commandList *replCommandList) *replCommand {
 			for _, cmd := range commandList.commands {
 				fmt.Printf("'%s' -> '%s'\n", cmd.name, cmd.description)
 			}
-			fmt.Println()
 
 			return nil
 		},
