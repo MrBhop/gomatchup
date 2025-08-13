@@ -56,7 +56,7 @@ func TestKColoring(t *testing.T) {
 	runCase := func(c input) error {
 		playersGraph := createPlayerGraph(c.players, c.exclusionList)
 
-		output, err := assignNodes(playersGraph, c.numberOfTeams)
+		output, err := AssignNodes(playersGraph, c.numberOfTeams)
 		if err != nil {
 			if !c.validAssignmentsPossible {
 				return nil

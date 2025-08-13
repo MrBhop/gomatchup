@@ -2,9 +2,11 @@ package datastructures
 
 type Graph[T comparable] interface {
 	AddNode(T)
+	RemoveNode(T)
 	HasNodes(...T) (bool, T)
 	CountNodes() int
 	AddEdge(T, T)
+	RemoveEdge(T, T)
 	HasEdge(T, T) bool
 	CountEdges() int
 	AdjacentNodes(T) Set[T]
@@ -25,6 +27,19 @@ func (g graphConcrete[T]) AddNode(node T) {
 	}
 
 	g[node] = NewSet[T]()
+}
+
+func (g graphConcrete[T]) RemoveNode(node T) {
+	if exist, _ := g.HasNodes(node); !exist {
+		return
+	}
+
+	// remove connections to the target node.
+	for neighbour := range g.AdjacentNodes(node).All() {
+		g[neighbour].Remove(node)
+	}
+
+	delete(g, node)
 }
 
 func (g graphConcrete[T]) HasNodes(nodes ...T) (exists bool, missingNode T) {
@@ -48,6 +63,15 @@ func (g graphConcrete[T]) AddEdge(node1, node2 T) {
 
 	g.addEdgeOneDirection(node1, node2)
 	g.addEdgeOneDirection(node2, node1)
+}
+
+func (g graphConcrete[T]) RemoveEdge(node1, node2 T) {
+	if !g.HasEdge(node1, node2) {
+		return
+	}
+
+	g[node1].Remove(node2)
+	g[node2].Remove(node1)
 }
 
 // The caller is expected to ensure, that node1 and node2 exist.
@@ -84,7 +108,7 @@ func (g graphConcrete[T]) AdjacentNodes(node T) Set[T] {
 
 func (g graphConcrete[T]) AllNodes() Set[T] {
 	outputSet := NewSet[T]()
-	for node, _ := range g {
+	for node := range g {
 		outputSet.Add(node)
 	}
 	return outputSet

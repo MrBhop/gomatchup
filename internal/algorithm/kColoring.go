@@ -1,10 +1,13 @@
 package algorithm
 
 import (
+	"errors"
 	"fmt"
 
 	datastructures "github.com/MrBhop/gomatchup/internal/dataStructures"
 )
+
+var NoValidAssignmentsError = errors.New("could not find valid assignments.")
 
 func nodeCanBeAssignedToGroup[T comparable](node T, group set[T], constraints graph[T]) bool {
 	for groupMember := range group.All() {
@@ -33,11 +36,7 @@ func getMaxGroupSize(numberOfNodes, numberOfGroups int) int {
 	return n
 }
 
-func noValidAssignmentsError() error {
-	return fmt.Errorf("could not find valid assignments.")
-}
-
-func assignNodes[T comparable](nodes graph[T], numberOfGroups int) ([]set[T], error) {
+func AssignNodes[T comparable](nodes datastructures.Graph[T], numberOfGroups int) ([]datastructures.Set[T], error) {
 	maxGroupSize := getMaxGroupSize(nodes.CountNodes(), numberOfGroups)
 	groups := newSliceOfSets[T](numberOfGroups)
 
@@ -45,7 +44,7 @@ func assignNodes[T comparable](nodes graph[T], numberOfGroups int) ([]set[T], er
 	nodeStack := datastructures.NewSimpleStack(nodes.ConnectedNodes())
 	groups = assignNodesR(nodeStack, groups, nodes, maxGroupSize)
 	if groups == nil {
-		return nil, noValidAssignmentsError()
+		return nil, NoValidAssignmentsError
 	}
 
 	// assign nodes without constraints.
