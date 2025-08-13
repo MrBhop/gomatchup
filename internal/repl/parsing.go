@@ -1,6 +1,8 @@
 package repl
 
-import "strings"
+import (
+	"strings"
+)
 
 func parseInput(input string) (command string, arguments []string) {
 	lowercase := strings.ToLower(input)
