@@ -9,7 +9,6 @@ import (
 )
 
 func TestKColoring(t *testing.T) {
-
 	type input struct {
 		players                  []string
 		numberOfTeams            int
@@ -57,7 +56,7 @@ func TestKColoring(t *testing.T) {
 	runCase := func(c input) error {
 		playersGraph := createPlayerGraph(c.players, c.exclusionList)
 
-		output, err := assignPlayers(playersGraph, c.numberOfTeams)
+		output, err := assignNodes(playersGraph, c.numberOfTeams)
 		if err != nil {
 			if !c.validAssignmentsPossible {
 				return nil

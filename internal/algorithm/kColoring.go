@@ -6,9 +6,9 @@ import (
 	datastructures "github.com/MrBhop/gomatchup/internal/dataStructures"
 )
 
-func playerCanBeAssignedToTeam[T comparable](player T, team set[T], constraints graph[T]) bool {
-	for teamMember := range team.All() {
-		if constraints.HasEdge(player, teamMember) {
+func nodeCanBeAssignedToGroup[T comparable](node T, group set[T], constraints graph[T]) bool {
+	for groupMember := range group.All() {
+		if constraints.HasEdge(node, groupMember) {
 			return false
 		}
 	}
@@ -25,9 +25,9 @@ func newSliceOfSets[T comparable](length int) []set[T] {
 	return output
 }
 
-func getMaxTeamSize(numberOfPlayers, numberOfTeams int) int {
-	n := numberOfPlayers / numberOfTeams
-	if numberOfPlayers % numberOfTeams != 0 {
+func getMaxGroupSize(numberOfNodes, numberOfGroups int) int {
+	n := numberOfNodes / numberOfGroups
+	if numberOfNodes % numberOfGroups != 0 {
 		n++
 	}
 	return n
@@ -37,61 +37,61 @@ func noValidAssignmentsError() error {
 	return fmt.Errorf("could not find valid assignments.")
 }
 
-func assignPlayers[T comparable](players graph[T], numberOfTeams int) ([]set[T], error) {
-	maxTeamSize := getMaxTeamSize(players.CountNodes(), numberOfTeams)
-	teams := newSliceOfSets[T](numberOfTeams)
+func assignNodes[T comparable](nodes graph[T], numberOfGroups int) ([]set[T], error) {
+	maxGroupSize := getMaxGroupSize(nodes.CountNodes(), numberOfGroups)
+	groups := newSliceOfSets[T](numberOfGroups)
 
-	// assign players with constraints
-	playerStack := datastructures.NewSimpleStack(players.ConnectedNodes())
-	teams = assignPlayersR(playerStack, teams, players, maxTeamSize)
-	if teams == nil {
+	// assign nodes with constraints
+	nodeStack := datastructures.NewSimpleStack(nodes.ConnectedNodes())
+	groups = assignNodesR(nodeStack, groups, nodes, maxGroupSize)
+	if groups == nil {
 		return nil, noValidAssignmentsError()
 	}
 
-	// assign players without constraints.
-	nextTeamToAdd := 0
-	for player := range players.UnconnectedNodes().All() {
-		for teams[nextTeamToAdd].Count() >= maxTeamSize {
-			if nextTeamToAdd >= len(teams) - 1 {
-				return nil, fmt.Errorf("Error assigning unconstrained players.")
+	// assign nodes without constraints.
+	nextGroupToAddIndex := 0
+	for node := range nodes.UnconnectedNodes().All() {
+		for groups[nextGroupToAddIndex].Count() >= maxGroupSize {
+			if nextGroupToAddIndex >= len(groups) - 1 {
+				return nil, fmt.Errorf("Error assigning unconstrained node.")
 			}
-			nextTeamToAdd++
+			nextGroupToAddIndex++
 		}
 
-		teams[nextTeamToAdd].Add(player)
+		groups[nextGroupToAddIndex].Add(node)
 	}
 
-	return teams, nil
+	return groups, nil
 }
 
-func assignPlayersR[T comparable](players simpleStack[T], teams[]set[T], constraints graph[T], maxTeamSize int) []set[T] {
-	currentPlayer, exists := players.Pop()
+func assignNodesR[T comparable](nodes simpleStack[T], groups[]set[T], constraints graph[T], maxGroupSize int) []set[T] {
+	currentNode, exists := nodes.Pop()
 	if !exists {
-		return teams
+		return groups
 	}
 	
-	for _, team := range teams {
-		if team.Count() >= maxTeamSize {
+	for _, group := range groups {
+		if group.Count() >= maxGroupSize {
 			continue
 		}
 
-		if !playerCanBeAssignedToTeam(currentPlayer, team, constraints) {
+		if !nodeCanBeAssignedToGroup(currentNode, group, constraints) {
 			continue
 		}
 
-		team.Add(currentPlayer)
+		group.Add(currentNode)
 
-		if newTeams := assignPlayersR(players, teams, constraints, maxTeamSize); newTeams != nil {
-			return newTeams
+		if newGroups := assignNodesR(nodes, groups, constraints, maxGroupSize); newGroups != nil {
+			return newGroups
 		}
 
-		team.Remove(currentPlayer)
+		group.Remove(currentNode)
 
-		if players.IsEmpty() {
-			return teams
+		if nodes.IsEmpty() {
+			return groups
 		}
 	}
 
-	players.Push()
+	nodes.Push()
 	return nil
 }
