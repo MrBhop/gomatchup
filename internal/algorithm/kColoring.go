@@ -1,16 +1,14 @@
 package algorithm
 
 import (
-	"errors"
+	"fmt"
 
-	"github.com/MrBhop/gomatchup/internal/dataStructures"
+	datastructures "github.com/MrBhop/gomatchup/internal/dataStructures"
 )
 
-type constraints = map[string]Set[string]
-
-func playerCanBeAssignedToTeam(player string, team Set[string], exclusionMap map[string]Set[string]) bool {
-	for p := range team {
-		if exclusionMap[p].Contains(player) {
+func playerCanBeAssignedToTeam[T comparable](player T, team set[T], constraints graph[T]) bool {
+	for teamMember := range team.All() {
+		if constraints.HasEdge(player, teamMember) {
 			return false
 		}
 	}
@@ -18,54 +16,82 @@ func playerCanBeAssignedToTeam(player string, team Set[string], exclusionMap map
 	return true
 }
 
-func assignPlayers(players []string, exclusionMap constraints, numberOfTeams int) ([]Set[string], error) {
-	playerStack := datastructures.NewSimpleStack(players)
-	teams := make([]Set[string], numberOfTeams)
-	for i := range teams {
-		teams[i] = Set[string]{}
-	}
-	maxTeamSize := len(players) / numberOfTeams
-	if len(players) % numberOfTeams != 0 {
-		maxTeamSize += 1
+func newSliceOfSets[T comparable](length int) []set[T] {
+	output := make([]set[T], length)
+	for i := range output {
+		output[i] = datastructures.NewSet[T]()
 	}
 
-	output := assignPlayersR(playerStack, teams, exclusionMap, maxTeamSize)
-	if output == nil {
-		return nil, errors.New("could not find valid assignment.")
-	}
-
-	return output, nil
+	return output
 }
 
-func assignPlayersR(players datastructures.SimpleStack[string], teams []Set[string], exclusionMap constraints, maxTeamSize int) []Set[string] {
-	player, exists := players.Pop()
+func getMaxTeamSize(numberOfPlayers, numberOfTeams int) int {
+	n := numberOfPlayers / numberOfTeams
+	if numberOfPlayers % numberOfTeams != 0 {
+		n++
+	}
+	return n
+}
+
+func noValidAssignmentsError() error {
+	return fmt.Errorf("could not find valid assignments.")
+}
+
+func assignPlayers[T comparable](players graph[T], numberOfTeams int) ([]set[T], error) {
+	maxTeamSize := getMaxTeamSize(players.CountNodes(), numberOfTeams)
+	teams := newSliceOfSets[T](numberOfTeams)
+
+	// assign players with constraints
+	playerStack := datastructures.NewSimpleStack(players.ConnectedNodes())
+	teams = assignPlayersR(playerStack, teams, players, maxTeamSize)
+	if teams == nil {
+		return nil, noValidAssignmentsError()
+	}
+
+	// assign players without constraints.
+	nextTeamToAdd := 0
+	for player := range players.UnconnectedNodes().All() {
+		for teams[nextTeamToAdd].Count() >= maxTeamSize {
+			if nextTeamToAdd >= len(teams) - 1 {
+				return nil, fmt.Errorf("Error assigning unconstrained players.")
+			}
+			nextTeamToAdd++
+		}
+
+		teams[nextTeamToAdd].Add(player)
+	}
+
+	return teams, nil
+}
+
+func assignPlayersR[T comparable](players simpleStack[T], teams[]set[T], constraints graph[T], maxTeamSize int) []set[T] {
+	currentPlayer, exists := players.Pop()
 	if !exists {
 		return teams
 	}
-
-	for index, team := range teams {
-		if !playerCanBeAssignedToTeam(player, team, exclusionMap) {
+	
+	for _, team := range teams {
+		if team.Count() >= maxTeamSize {
 			continue
 		}
 
-		if len(team) >= maxTeamSize {
+		if !playerCanBeAssignedToTeam(currentPlayer, team, constraints) {
 			continue
 		}
 
-		teams[index].Add(player)
+		team.Add(currentPlayer)
+
+		if newTeams := assignPlayersR(players, teams, constraints, maxTeamSize); newTeams != nil {
+			return newTeams
+		}
+
+		team.Remove(currentPlayer)
 
 		if players.IsEmpty() {
 			return teams
 		}
-
-		newTeams := assignPlayersR(players, teams, exclusionMap, maxTeamSize)
-		if newTeams != nil {
-			return newTeams
-		}
-
-		teams[index].Remove(player)
-		players.Push()
 	}
 
+	players.Push()
 	return nil
 }

@@ -4,23 +4,21 @@ package datastructures
 A basic stack, with "static" elements.
 Elements can only be set at creation, afterwards, the stack is only used to keep track of the current item.
 */
-type simpleStackConcrete[T any] struct {
+type simpleStackConcrete[T comparable] struct {
 	items        []T
 	stackPointer int
 }
 
-type SimpleStack[T any] interface {
+type SimpleStack[T comparable] interface {
 	Pop() (T, bool)
 	Push()
 	IsEmpty() bool
 }
 
-func NewSimpleStack[T any] (items []T) SimpleStack[T] {
-	itemsCopy := make([]T, len(items))
-	copy(itemsCopy, items)
+func NewSimpleStack[T comparable] (items Set[T]) SimpleStack[T] {
 	return &simpleStackConcrete[T]{
-		items: itemsCopy,
-		stackPointer: len(items) - 1,
+		items: items.ToSlice(),
+		stackPointer: items.Count() - 1,
 	}
 }
 
@@ -35,7 +33,7 @@ func (s *simpleStackConcrete[T]) Pop() (item T, exists bool) {
 }
 
 func (s *simpleStackConcrete[T]) Push() {
-	// stack is already at first value.
+	// stack is already at last value.
 	if s.stackPointer == len(s.items) - 1 {
 		return
 	}

@@ -4,57 +4,48 @@ import (
 	"fmt"
 	"math"
 	"testing"
+
+	datastructures "github.com/MrBhop/gomatchup/internal/dataStructures"
 )
 
 func TestKColoring(t *testing.T) {
+
 	type input struct {
 		players                  []string
 		numberOfTeams            int
-		exclusionList             [][2]string
+		exclusionList            [][2]string
 		validAssignmentsPossible bool
 	}
 
-	createExclusionMap := func(exclusionList [][2]string) map[string]Set[string] {
-		output := map[string]Set[string]{}
+	createPlayerGraph := func(players []string, exclusionList [][2]string) graph[string] {
+		output := datastructures.NewGraph[string]()
+		for _, p := range players {
+			output.AddNode(p)
+		}
 		for _, tuple := range exclusionList {
-			val1, val2 := tuple[0], tuple[1]
-
-			if _, exists := output[val1]; !exists {
-				output[val1] = Set[string]{}
-			}
-			if _, exists := output[val2]; !exists {
-				output[val2] = Set[string]{}
-			}
-
-			i := output[val1]
-			i.Add(val2)
-
-			j := output[val2]
-			j.Add(val1)
+			output.AddEdge(tuple[0], tuple[1])
 		}
 		return output
 	}
 
-	checkExclusionCriteria := func(teams []Set[string], exclusionMap constraints) error {
-		// check team sizes.
-		baseSize := len(teams[0])
-		for i := 1; i < len(teams); i++ {
-			if int(math.Abs(float64(len(teams[i]) - baseSize))) > 1 {
+	checkExclusionCriteria := func(teams []set[string], constraints graph[string]) error {
+		baseSize := teams[0].Count()
+		for index, team := range teams {
+			// check team size.
+			if int(math.Abs(float64(team.Count() - baseSize))) > 1 {
 				return fmt.Errorf("team sizes differ by more than 1.")
 			}
-		}
 
-		// check against exclusion map.
-		for i, team := range teams {
-			for player := range team {
-				for player2 := range team {
-					m, exists := exclusionMap[player]
-					if !exists {
-						continue
-					}
+			// check if the team has forbidden pairings.
+			for player := range team.All() {
+				// check if player has any constraints.
+				if exist, _ := constraints.HasNodes(player); !exist {
+					continue
+				}
 
-					if m.Contains(player2) {
-						return fmt.Errorf("team %d violates exclusion list. Contains %s & %s.", i + 1, player, player2)
+				for notAllowedMate := range constraints.AdjacentNodes(player).All() {
+					if team.Contains(notAllowedMate) {
+						return fmt.Errorf("team %d contains both '%v' and '%v'.", index, player, notAllowedMate)
 					}
 				}
 			}
@@ -64,9 +55,9 @@ func TestKColoring(t *testing.T) {
 	}
 
 	runCase := func(c input) error {
-		exclusionMap := createExclusionMap(c.exclusionList)
+		playersGraph := createPlayerGraph(c.players, c.exclusionList)
 
-		output, err := assignPlayers(c.players, exclusionMap, c.numberOfTeams)
+		output, err := assignPlayers(playersGraph, c.numberOfTeams)
 		if err != nil {
 			if !c.validAssignmentsPossible {
 				return nil
@@ -79,7 +70,7 @@ func TestKColoring(t *testing.T) {
 		for i, team := range output {
 			t.Logf("Team %d of %d:\n", i + 1, len(output))
 			counter := 1
-			for player := range team {
+			for player := range team.All() {
 				t.Logf("%d.) %s\n", counter, player)
 
 				counter++
@@ -91,11 +82,12 @@ func TestKColoring(t *testing.T) {
 			return fmt.Errorf("Case expected no valid assignment, but one was still found")
 		}
 
-		return checkExclusionCriteria(output, exclusionMap)
+		return checkExclusionCriteria(output, playersGraph)
 	}
 
 
 	cases := []input{
+		// valid assignment with constraints
 		{
 			players: []string{
 				"player1",
@@ -118,6 +110,7 @@ func TestKColoring(t *testing.T) {
 			},
 			validAssignmentsPossible: true,
 		},
+		// no valid assignment - overconstrained
 		{
 			players: []string{
 				"player1",
