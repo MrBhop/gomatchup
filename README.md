@@ -1,34 +1,34 @@
 # gomatchup
-gomatchup is a CLI Tool for generating team compositions based on constraints.<br>
-It implements REPL functionality, which allows the user to add players to a list, from which team compositions can be generated.
+**gomatchup** is a command-line interface (CLI) tool written in Go that assists in generating team compositions according to customizable constraints. It features a REPL (Read–Eval–Print Loop) interface that enables users to interactively manage players and apply constraints before generating balanced teams.
 
-Example:
+---
+
+## Features
+
+- **Interactive REPL**<br>
+Add players and define constraints through an interactive interface.
+
+- **Customizable Constraints**<br>
+Add constraints, to prevent certain players from being in the same team.
+
+- **Team Generation**<br>
+Split added players into a specified number of teams, while respecting the constraints and keeping team sizes balanced.
+
+## Installation
+You can install `gomatchup` using `go install`
+```bash
+go install github.com/MrBhop/gomatchup@latest
 ```
-gomatchup >> add-player Player1
-Player 'player1' added.
-
-gomatchup >> add-player Player2
-Player 'player2' added.
-
-gomatchup >> add-player Player3
-Player 'player3' added.
-
-gomatchup >> add-player Player4
-Player 'player4' added.
-
-gomatchup >> add-player Player5
-Player 'player5' added.
-
-gomatchup >> add-constraint Player1 Player2
-Added exclusion constraint, 'player1' X 'player2'.
-
-gomatchup >> generate-teams 2
-Team 1 of 2:
-        - 'player2'
-        - 'player5'
-        - 'player3'
-
-Team 2 of 2:
-        - 'player1'
-        - 'player4'
+After installation, ensure your `GOPATH/bin` or Go's default bin directory is in your `PATH`. Then run via
+```bash
+gomatchup
 ```
+
+## Usage
+When you start `gomatchup`, you'll enter an interactive prompt where you can add players, define constraints, and generate teams. The interface provides guidance as you go, so most functionality should be self-explanatory. Use the built-in `help` command at any time to see available actions, and `exit` to leave the program.
+
+## License
+No License.
+
+## Acknowledgements
+This project was created for a course on boot.dev (https://www.boot.dev/courses/build-personal-project-1).
