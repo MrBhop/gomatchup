@@ -5,7 +5,7 @@ import (
 	"log"
 
 	datastructures "github.com/MrBhop/gomatchup/internal/dataStructures"
-	"github.com/MrBhop/gomatchup/internal/repl"
+	repl "github.com/MrBhop/goReplUtils"
 )
 
 func main() {
